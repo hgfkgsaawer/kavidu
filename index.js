@@ -654,25 +654,30 @@ if (senderNumber.includes(config.OWNER_NUMBER)) {
         }
         }
 
-        //_________________________________PLUGIN MAP_________________________________
-        events.commands.map(async (command) => {
-            if (body && command.on === "body") {
-                command.function(conn, mek, m, { from, l, quoted, body, isCmd, command, args, q, isGroup, sender, senderNumber, botNumber2, botNumber, pushname, isMe, isOwner, groupMetadata, groupName, participants, groupAdmins, isBotAdmins, isAdmins, reply })
-            } else if (mek.q && command.on === "text") {
-                command.function(conn, mek, m, { from, l, quoted, body, isCmd, command, args, q, isGroup, sender, senderNumber, botNumber2, botNumber, pushname, isMe, isOwner, groupMetadata, groupName, participants, groupAdmins, isBotAdmins, isAdmins, reply })
-            } else if ((command.on === "image" || command.on === "photo") && mek.type === "imageMessage") {
-                command.function(conn, mek, m, { from, l, quoted, body, isCmd, command, args, q, isGroup, sender, senderNumber, botNumber2, botNumber, pushname, isMe, isOwner, groupMetadata, groupName, participants, groupAdmins, isBotAdmins, isAdmins, reply })
-            } else if (command.on === "sticker" && mek.type === "stickerMessage") {
-                command.function(conn, mek, m, { from, l, quoted, body, isCmd, command, args, q, isGroup, sender, senderNumber, botNumber2, botNumber, pushname, isMe, isOwner, groupMetadata, groupName, participants, groupAdmins, isBotAdmins, isAdmins, reply })
-            }});
-//_______________________________________________________________________________________________________________________
-})
-}
+//_________________________________PLUGIN MAP_________________________________
+events.commands.map(async (command) => {
+    if (body && command.on === "body") {
+        command.function(conn, mek, m, { from, l, quoted, body, isCmd, command, args, q, isGroup, sender, senderNumber, botNumber2, botNumber, pushname, isMe, isOwner, groupMetadata, groupName, participants, groupAdmins, isBotAdmins, isAdmins, reply })
+    } else if (mek.q && command.on === "text") {
+        command.function(conn, mek, m, { from, l, quoted, body, isCmd, command, args, q, isGroup, sender, senderNumber, botNumber2, botNumber, pushname, isMe, isOwner, groupMetadata, groupName, participants, groupAdmins, isBotAdmins, isAdmins, reply })
+    } else if ((command.on === "image" || command.on === "photo") && mek.type === "imageMessage") {
+        command.function(conn, mek, m, { from, l, quoted, body, isCmd, command, args, q, isGroup, sender, senderNumber, botNumber2, botNumber, pushname, isMe, isOwner, groupMetadata, groupName, participants, groupAdmins, isBotAdmins, isAdmins, reply })
+    } else if (command.on === "sticker" && mek.type === "stickerMessage") {
+        command.function(conn, mek, m, { from, l, quoted, body, isCmd, command, args, q, isGroup, sender, senderNumber, botNumber2, botNumber, pushname, isMe, isOwner, groupMetadata, groupName, participants, groupAdmins, isBotAdmins, isAdmins, reply })
+    }
+});
 
+// ⬆️ ↑↑↑↑↑↑ plugin map close
+
+}; // ✅ connectToWA function CLOSE
+
+//===================================== EXPRESS SERVER SETUP =====================================//
 app.get("/", (req, res) => {
     res.send("KAVI-MD CONECTED✅");
 });
+
 app.listen(port, () => console.log(`Server listening on port http://localhost:${port}`));
+
 setTimeout(() => {
     connectToWA();
 }, 4000);
