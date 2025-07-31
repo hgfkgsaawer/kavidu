@@ -126,51 +126,21 @@ let notifyNumbers = [
   '94762858448@s.whatsapp.net',
   '94763591554@s.whatsapp.net',
   '94727487353@s.whatsapp.net'
-];
+]; // <-- 🔴 THIS WAS MISSING
 
-// ===== CHANNEL JID (replace with your channel/newsletter ID) =====
-let channelJid = '120363401391515716@newsletter'; // <-- replace with your actual channel ID
+// ===== EVENTS START =====
+conn.ev.on('creds.update', saveCreds);
 
-// ===== Send to all notify numbers =====
-for (let jid of notifyNumbers) {
-  conn.sendMessage(jid, {
-    image: { url: config.MENU_IMG },
-    caption: up
-  });
-}
+conn.ev.on('messages.upsert', async (mek) => {
+    mek = mek.messages[0];
+    if (!mek.message) return;
 
-// ===== Send to the channel with forwarded context =====
-conn.sendMessage(channelJid, {
-  image: { url: config.MENU_IMG },
-  caption: up,
-  contextInfo: {
-    forwardingScore: 999,
-    isForwarded: true,
-    forwardedNewsletterMessageInfo: {
-      newsletterJid: channelJid,
-      newsletterName: config.BOT_NAME,
-      serverMessageId: 999
-    },
-    externalAdReply: {
-      title: config.BOT_NAME,
-      body: 'Your WhatsApp MD Bot is online!',
-      mediaType: 1,
-      thumbnailUrl: config.MENU_IMG,
-      renderLargerThumbnail: true,
-      showAdAttribution: true
-    }
-  }
+    mek.message = (getContentType(mek.message) === 'ephemeralMessage')
+        ? mek.message.ephemeralMessage.message
+        : mek.message;
+
+    // console.log("New Message Detected:", JSON.stringify(mek, null, 2));
 });
-
-    conn.ev.on('creds.update', saveCreds)
-
-    conn.ev.on('messages.upsert', async (mek) => {
-        mek = mek.messages[0]
-        if (!mek.message) return
-        mek.message = (getContentType(mek.message) === 'ephemeralMessage')
-            ? mek.message.ephemeralMessage.message
-            : mek.message;
-//console.log("New Message Detected:", JSON.stringify(mek, null, 2));
         if (config.READ_MESSAGE === 'true') {
             await conn.readMessages([mek.key]);
             console.log(`Marked message from ${mek.key.remoteJid} as read.`);
