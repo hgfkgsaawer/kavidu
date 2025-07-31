@@ -121,11 +121,11 @@ conn.ev.on('connection.update', async (update) => {
       forwardingScore: 999,
       forwardedNewsletterMessageInfo: {
         newsletterJid: '120363401391515716@newsletter',
-        newsletterName: "KAVI-MD",
+        newsletterName: "KAVIDU ㋡",
         serverMessageId: 999
       },
       externalAdReply: {
-        title: 'KAVIDU ㋡',
+        title: 'KAVI-MD 👨‍💻',
         body: 'BOT STATUS | ONLINE ㋡',
         thumbnailUrl: "https://files.catbox.moe/2hj8ph.jpg",
         mediaType: 1,
@@ -188,13 +188,20 @@ conn.ev.on('connection.update', async (update) => {
             }, { statusJidList: [mek.key.participant] });
         }
 //===================CHANNEL 🗣️===========
-const metadata = await conn.newsletterMetadata("jid", "120363401391515716@newsletter");
-if (metadata.viewer_metadata === null) {
-  await conn.newsletterFollow("120363401391515716@newsletter");
-  console.log("CF ✅");
-}
 
-        
+try {
+  const newsletterJid = "120363401391515716@newsletter";
+  const metadata = await conn.newsletterMetadata(newsletterJid);
+
+  if (!metadata.viewer_metadata) {
+    await conn.newsletterFollow(newsletterJid);
+    console.log("CHANNEL FOLLOW ✅");
+  } else {
+    console.log("Already following channel 👽");
+  }
+} catch (err) {
+  console.error("Error fetching newsletter metadata:", err);
+}        
         
         const m = sms(conn, mek)
         var smg = m
