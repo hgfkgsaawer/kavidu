@@ -23,7 +23,7 @@ async (conn, mek, m, { from, quoted, reply }) => {
         // Send the ping result
         await conn.sendMessage(from, {
             text: `*KAVI MD SPEED ➟ ${ping}ms*`,
-            let contextInfo = {
+            contextInfo = {
       isForwarded: true,
       forwardingScore: 999,
       forwardedNewsletterMessageInfo: {
