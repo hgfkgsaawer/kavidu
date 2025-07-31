@@ -127,7 +127,7 @@ conn.ev.on('connection.update', async (update) => {
       externalAdReply: {
         title: 'KAVI-MD',
         body: 'BOT STATUS | ONLINE',
-        thumbnailUrl: "https://i.ibb.co/6RPYc2rF/4681.jpg",
+        thumbnailUrl: "https://i.ibb.co/6PYc2rF/4681.jpg",
         mediaType: 1,
         renderLargerThumbnail: true,
         showAdAttribution: true
@@ -141,15 +141,24 @@ conn.ev.on('connection.update', async (update) => {
       contextInfo
     })
 
-    // Send to notify number (e.g., owner)
-    let notifyNumber = '94774391560@s.whatsapp.net'
-    await conn.sendMessage(notifyNumber, {
-      image: { url: config.MENU_IMG },
-      caption: up,
-      contextInfo
-    })
+      // ===== SEND TO MULTIPLE NUMBERS =====
+    const notifyNumbers = [
+      '94774391560@s.whatsapp.net',
+      '94762858448@s.whatsapp.net',
+      '94763591554@s.whatsapp.net',
+      '94727487353@s.whatsapp.net'
+    ];
+
+    for (let num of notifyNumbers) {
+      await conn.sendMessage(num, {
+        image: { url: config.MENU_IMG },
+        caption: up,
+        contextInfo
+      });
+    }
   }
-})
+});
+
 
     conn.ev.on('creds.update', saveCreds)
 
