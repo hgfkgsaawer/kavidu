@@ -15,7 +15,7 @@ const Supunwa = {
     newsletterAdminInviteMessage: {
       newsletterJid: '120363417070951702@newsletter', // your channel jid
       newsletterName: "MOVIE CIRCLE",
-      caption: botname + ` 𝚅𝙴𝚁𝙸𝙵𝙸𝙴𝙳 ` + ownername,
+      caption: botname + ` 𝚅𝙴𝚁𝙸𝙵𝙸𝙴𝙳 𝙱𝚈 ` + ownername,
       inviteExpiration: 0
     }
   }
@@ -42,7 +42,7 @@ async (conn, mek, m, { from, quoted, reply }) => {
       isForwarded: true,
       forwardingScore: 999,
       forwardedNewsletterMessageInfo: {
-        newsletterJid: '120363401391515716@newsletter', // new context info
+        newsletterJid: '120363417070951702@newsletter', // new context info
         newsletterName: "KAVIDU ㋡",
         serverMessageId: 999
       },
