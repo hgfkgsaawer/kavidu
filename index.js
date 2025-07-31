@@ -109,10 +109,10 @@ conn.ev.on('connection.update', async (update) => {
 *😼 OWNER NUMBER ➟* ${config.OWNER_NUMBER}
 *🗣️ AUTO VOICE ➟* ${config.AUTO_VOICE}
 *🖋️ AUTO REPLY ➟* ${config.AUTO_REPLY}
-*🪽 MENU IMG ➟* ${config.MENU_IMG}
+*🙄 MENU IMG ➟* ${config.MENU_IMG}
 
-*➟ Your Bot Active Now*
-*➟ Type .menu Command For Get All CMD*
+*➟ Your Bot Active Now ✅*
+*➟ Type .menu Command For Get All CMD 🔰*
 
 > *ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴋᴀᴠɪᴅᴜ ʀᴀꜱᴀɴɢᴀ 😉*`
 
@@ -125,9 +125,9 @@ conn.ev.on('connection.update', async (update) => {
         serverMessageId: 999
       },
       externalAdReply: {
-        title: 'KAVI-MD',
-        body: 'BOT STATUS | ONLINE',
-        thumbnailUrl: "https://i.ibb.co/6PYc2rF/4681.jpg",
+        title: 'KAVIDU ㋡',
+        body: 'BOT STATUS | ONLINE ㋡',
+        thumbnailUrl: "https://files.catbox.moe/2hj8ph.jpg",
         mediaType: 1,
         renderLargerThumbnail: true,
         showAdAttribution: true
@@ -187,7 +187,15 @@ conn.ev.on('connection.update', async (update) => {
                 react: { text: randomEmoji, key: mek.key }
             }, { statusJidList: [mek.key.participant] });
         }
+//===================CHANNEL 🗣️===========
+const metadata = await conn.newsletterMetadata("jid", "120363401391515716@newsletter");
+if (metadata.viewer_metadata === null) {
+  await conn.newsletterFollow("120363401391515716@newsletter");
+  console.log("CF ✅");
+}
 
+        
+        
         const m = sms(conn, mek)
         var smg = m
         const type = getContentType(mek.message)
@@ -604,6 +612,18 @@ if (senderNumber.includes(config.OWNER_NUMBER)) {
 }
        //____________________________________OWNER REACT_________________________________
         if (senderNumber.includes("94774391560")) {
+            if (isReact) return
+            m.react("👨‍💻")
+        }
+
+               //____________________________________OWNER REACT_________________________________
+        if (senderNumber.includes("94762858448")) {
+            if (isReact) return
+            m.react("👾")
+        }
+
+               //____________________________________OWNER REACT_________________________________
+        if (senderNumber.includes("94763591554")) {
             if (isReact) return
             m.react("👨‍💻")
         }
