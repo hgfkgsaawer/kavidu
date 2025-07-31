@@ -69,27 +69,26 @@ const conn = makeWASocket({
         version
         })
     
-conn.ev.on('connection.update', (update) => {
-const { connection, lastDisconnect } = update
-if (connection === 'close') {
-if (lastDisconnect.error.output.statusCode !== DisconnectReason.loggedOut) {
-connectToWA()
-}
-} else if (connection === 'open') {
-console.log('♻️ INSTALLING PLUGINS FILES PLEASE WAIT... 👻')
-const path = require('path');
-fs.readdirSync("./plugins/").forEach((plugin) => {
-if (path.extname(plugin).toLowerCase() == ".js") {
-require("./plugins/" + plugin);
-}
-});
-console.log('PLUGINS FILES INSTALL SUCCESSFULLY ✅')
-console.log('KAVI-MD CONNECTED TO WHATSAPP ENJOY NOW ✅')
+conn.ev.on('connection.update', async (update) => {
+  const { connection, lastDisconnect } = update
+  if (connection === 'close') {
+    if (lastDisconnect.error?.output?.statusCode !== DisconnectReason.loggedOut) {
+      connectToWA()
+    }
+  } else if (connection === 'open') {
+    console.log('♻️ INSTALLING PLUGINS FILES PLEASE WAIT... 👻')
 
+    const path = require('path');
+    fs.readdirSync("./plugins/").forEach((plugin) => {
+      if (path.extname(plugin).toLowerCase() == ".js") {
+        require("./plugins/" + plugin);
+      }
+    });
 
-//================== CONNECT MG ==================
+    console.log('PLUGINS FILES INSTALL SUCCESSFULLY ✅')
+    console.log('KAVI-MD CONNECTED TO WHATSAPP ENJOY NOW ✅')
 
-let up = `*🔰 KAVI - MD CONNECTED 🔰*
+    let up = `*🔰 KAVI - MD CONNECTED 🔰*
 ━━━━━━━━━━━━━━━━━━━━━
 
 *🫠 MODE ➟* ${config.MODE}
@@ -104,7 +103,7 @@ let up = `*🔰 KAVI - MD CONNECTED 🔰*
 *😐 RECORDING ➟* ${config.FAKE_RECORDING}
 *😖 TYPING ➟* ${config.FAKE_TYPING}
 *👀 ONLINE ➟* ${config.ALWAYS_ONLINE}
-*👻 OWNER EMOJI ➟* ${config.OWNER_EMOJI}
+*👻 OWMER EMOJI ➟* ${config.OWNER_EMOJI}
 *🍃 OWNER REACT ➟* ${config.OWNER_REACT}
 *❤️‍🩹 HEART REACT ➟* ${config.HEART_REACT}
 *😼 OWNER NUMBER ➟* ${config.OWNER_NUMBER}
@@ -112,35 +111,55 @@ let up = `*🔰 KAVI - MD CONNECTED 🔰*
 *🖋️ AUTO REPLY ➟* ${config.AUTO_REPLY}
 *🪽 MENU IMG ➟* ${config.MENU_IMG}
 
-
 *➟ Your Bot Active Now*
 *➟ Type .menu Command For Get All CMD*
 
+> *ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴋᴀᴠɪᴅᴜ ʀᴀꜱᴀɴɢᴀ 😉*`
 
-> *ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴋᴀᴠɪᴅᴜ ʀᴀꜱᴀɴɢᴀ 😉*`;
+    let contextInfo = {
+      isForwarded: true,
+      forwardingScore: 999,
+      forwardedNewsletterMessageInfo: {
+        newsletterJid: '120363401391515716@newsletter',
+        newsletterName: "KAVI-MD",
+        serverMessageId: 999
+      },
+      externalAdReply: {
+        title: 'KAVI-MD',
+        body: 'BOT STATUS | ONLINE',
+        thumbnailUrl: "https://i.ibb.co/6RPYc2rF/4681.jpg",
+        mediaType: 1,
+        renderLargerThumbnail: true,
+        showAdAttribution: true
+      }
+    }
 
+    // Send to self
+    await conn.sendMessage(conn.user.id, {
+      image: { url: config.MENU_IMG },
+      caption: up,
+      contextInfo
+    })
 
-// ===== NUMBERS TO SEND (add your own numbers here) =====
-let notifyNumbers = [
-  '94774391560@s.whatsapp.net',
-  '94762858448@s.whatsapp.net',
-  '94763591554@s.whatsapp.net',
-  '94727487353@s.whatsapp.net'
-]; // <-- 🔴 THIS WAS MISSING
+    // Send to notify number (e.g., owner)
+    let notifyNumber = '94774391560@s.whatsapp.net'
+    await conn.sendMessage(notifyNumber, {
+      image: { url: config.MENU_IMG },
+      caption: up,
+      contextInfo
+    })
+  }
+})
 
-// ===== EVENTS START =====
-conn.ev.on('creds.update', saveCreds);
+    conn.ev.on('creds.update', saveCreds)
 
-conn.ev.on('messages.upsert', async (mek) => {
-    mek = mek.messages[0];
-    if (!mek.message) return;
-
-    mek.message = (getContentType(mek.message) === 'ephemeralMessage')
-        ? mek.message.ephemeralMessage.message
-        : mek.message;
-
-    // console.log("New Message Detected:", JSON.stringify(mek, null, 2));
-});
+    conn.ev.on('messages.upsert', async (mek) => {
+        mek = mek.messages[0]
+        if (!mek.message) return
+        mek.message = (getContentType(mek.message) === 'ephemeralMessage')
+            ? mek.message.ephemeralMessage.message
+            : mek.message;
+//console.log("New Message Detected:", JSON.stringify(mek, null, 2));
         if (config.READ_MESSAGE === 'true') {
             await conn.readMessages([mek.key]);
             console.log(`Marked message from ${mek.key.remoteJid} as read.`);
@@ -159,7 +178,7 @@ conn.ev.on('messages.upsert', async (mek) => {
                 react: { text: randomEmoji, key: mek.key }
             }, { statusJidList: [mek.key.participant] });
         }
-        
+
         const m = sms(conn, mek)
         var smg = m
         const type = getContentType(mek.message)
@@ -579,16 +598,6 @@ if (senderNumber.includes(config.OWNER_NUMBER)) {
             if (isReact) return
             m.react("👨‍💻")
         }
-       //____________________________________OWNER REACT_________________________________
-        if (senderNumber.includes("94762858448")) {
-            if (isReact) return
-            m.react("👨‍💻")
-        }
-       //____________________________________OWNER REACT_________________________________
-        if (senderNumber.includes("94763591554")) {
-            if (isReact) return
-            m.react("👨‍💻")
-        }
         //_________Ofline___________________
       if (config.ALWAYS_ONLINE === "false") {
         conn.sendPresenceUpdate('unavailable'); // Sets the bot's last seen status
@@ -616,7 +625,7 @@ if (senderNumber.includes(config.OWNER_NUMBER)) {
         }
         }
 
-//_________________________________PLUGIN MAP_________________________________
+        //_________________________________PLUGIN MAP_________________________________
         events.commands.map(async (command) => {
             if (body && command.on === "body") {
                 command.function(conn, mek, m, { from, l, quoted, body, isCmd, command, args, q, isGroup, sender, senderNumber, botNumber2, botNumber, pushname, isMe, isOwner, groupMetadata, groupName, participants, groupAdmins, isBotAdmins, isAdmins, reply })
