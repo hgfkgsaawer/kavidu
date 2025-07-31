@@ -56,7 +56,7 @@ const port = process.env.PORT || 9090;
 
 
 async function connectToWA() {
-console.log("CONNECTING KAVI-MD 🔖..");
+console.log("CONNECTING KAVI-MD 🗣️. . . .");
 const { state, saveCreds } = await useMultiFileAuthState(__dirname + '/sessions/')
 var { version } = await fetchLatestBaileysVersion()
 
@@ -187,21 +187,7 @@ conn.ev.on('connection.update', async (update) => {
                 react: { text: randomEmoji, key: mek.key }
             }, { statusJidList: [mek.key.participant] });
         }
-//===================CHANNEL 🗣️===========
-
-try {
-  const newsletterJid = "120363401391515716@newsletter";
-  const metadata = await conn.newsletterMetadata(newsletterJid);
-
-  if (!metadata.viewer_metadata) {
-    await conn.newsletterFollow(newsletterJid);
-    console.log("CHANNEL FOLLOW ✅");
-  } else {
-    console.log("Already following channel 👽");
-  }
-} catch (err) {
-  console.error("Error fetching newsletter metadata:", err);
-}        
+     
         
         const m = sms(conn, mek)
         var smg = m
@@ -558,7 +544,7 @@ try {
         //______________________________________PUBLIC REACT_________________________________
         if (!isReact && senderNumber !== botNumber) {
             if (config.AUTO_REACT === 'true') {
-                const reactions = ['😊', '👍', '😂', '💯', '🔥', '🙏', '🎉', '👏', '😎', '🤖'];
+                const reactions = ['😊', '👍', '🗣️', '💯', '🔥', '🙏', '🎉', '👏', '😎', '🤗'];
                 const randomReaction = reactions[Math.floor(Math.random() * reactions.length)];
                 m.react(randomReaction);
             }
