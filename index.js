@@ -148,7 +148,7 @@ conn.sendMessage(channelJid, {
     isForwarded: true,
     forwardedNewsletterMessageInfo: {
       newsletterJid: channelJid,
-      newsletterName: "👽👽",
+      newsletterName: config.BOT_NAME,
       serverMessageId: 999
     },
     externalAdReply: {
