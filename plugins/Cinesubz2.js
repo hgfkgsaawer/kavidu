@@ -1,7 +1,7 @@
 const axios = require('axios');
 const fetch = require('node-fetch');
-const config = require('../settings');
-const { cmd } = require('../lib/command');
+const config = require('../config');
+const { cmd } = require('../command');
 const { getBuffer, fetchApi, sleep } = require('../lib/functions');
 const fg = require('api-dylux');
 const { File } = require('megajs');
