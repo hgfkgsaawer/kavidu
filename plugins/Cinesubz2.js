@@ -1,6 +1,6 @@
 // pastpp.js — Sri Lanka Past Paper Search & Download (reply-based)
 
-const { cmd } = require('../lib/command');
+const { cmd } = require('../command');
 const axios = require('axios');
 
 let pastppConn = null;
