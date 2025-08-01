@@ -1,6 +1,3 @@
-// commands/movie.js – brand‑tagged result card version
-// Requirements: axios, node-cache
-
 const l = console.log;
 const config = require('../config');
 const { cmd } = require('../command');
@@ -10,14 +7,14 @@ const NodeCache = require('node-cache');
 const searchCache = new NodeCache({ stdTTL: 60, checkperiod: 120 });
 
 // WhatsApp document-card එකේ දිස්වන brand watermark එක
-const BRAND = '✫☘𝐆𝐎𝐉𝐎 𝐌𝐎𝐕𝐈𝐄 𝐇𝐎𝐌𝐄☢️☘';
+const BRAND = `${config.MOVIE_FOOTER}`;
 
 cmd(
   {
-    pattern: 'kavi',
+    pattern: 'sinhalasub',
     react: '🎬',
     desc: 'Search and download Movies/TV Series',
-    category: 'media',
+    category: 'download',
     filename: __filename,
   },
   async (conn, mek, m, { from, q }) => {
@@ -28,9 +25,9 @@ cmd(
         {
           text:
             '*🎬 Movie / TV Series Search*\n\n' +
-            '📋 Usage: .movie <search term>\n' +
-            '📝 Example: .movie Breaking Bad\n\n' +
-            "💡 Reply 'done' to stop the process",
+            '📋 Usage: .sinhalasub <search term>\n' +
+            '📝 Example: .sinhalasub Breaking Bad\n\n' +
+            "*💡 Type Your Movie ㋡*",
         },
         { quoted: mek }
       );
@@ -76,11 +73,11 @@ cmd(
       // results text එක build කරනවා
       let txt = '*🎬 SEARCH RESULTS*\n\n';
       for (const f of films) {
-        txt += `🎥 ${f.n}. *${f.title}*\n   ⭐ IMDB: ${f.imdb}\n   📅 Year: ${f.year}\n\n`;
+        txt += `🎥 ${f.n}. *${f.title}*\n  ⭐ IMDB: ${f.imdb}\n  📅 Year: ${f.year}\n\n`;
       }
-      txt += '🔢 Select number • "done" to cancel';
+      txt += '🔢 Select number 🪀';
 
-      // first message එක send කරනවා (image සහ caption සමඟ)
+      
       const listMsg = await conn.sendMessage(
         from,
         { image: { url: films[0].image }, caption: txt },
@@ -89,22 +86,22 @@ cmd(
 
       const waiting = new Map();
 
-      // ────── Message handler ──────
+      
       const handler = async ({ messages }) => {
         const msg = messages?.[0];
         if (!msg?.message?.extendedTextMessage) return;
         const body = msg.message.extendedTextMessage.text.trim();
         const replyTo = msg.message.extendedTextMessage.contextInfo?.stanzaId;
 
-        // Cancel command එක handle කරනවා
+        
         if (body.toLowerCase() === 'done') {
           conn.ev.off('messages.upsert', handler);
           waiting.clear();
-          await conn.sendMessage(from, { text: '✅ Cancelled.' }, { quoted: msg });
+          await conn.sendMessage(from, { text: 'OK.' }, { quoted: msg });
           return;
         }
 
-        // First step: user film එක තෝරනවා
+      
         if (replyTo === listMsg.key.id) {
           const film = films.find((f) => f.n === parseInt(body));
           if (!film) {
@@ -112,7 +109,7 @@ cmd(
             return;
           }
 
-          // download links fetch කරන API එකට request කරනවා
+          
           const lUrl = `https://apis.davidcyriltech.my.id/movies/download?url=${encodeURIComponent(film.link)}`;
           let dl;
           let r = 3;
@@ -132,7 +129,7 @@ cmd(
 
           const links = dl.movie.download_links;
 
-          // Video quality pick list එක generate කරනවා
+          
           const picks = [];
           const sd = links.find((x) => x.quality === 'SD 480p' && x.direct_download);
           const hd =
@@ -147,10 +144,10 @@ cmd(
             return;
           }
 
-          // quality select කරන්න text එක build කරනවා
+          
           let qTxt = `*🎬 ${film.title}*\n\n📥 Choose Quality:\n\n`;
           for (const p of picks) qTxt += `${p.n}. *${p.q}* (${p.size})\n`;
-          qTxt += '\n🔢 Reply number • "done" to cancel';
+          qTxt += '\n*~https://whatsapp.com/channel/0029Vb5xFPHGE56jTnm4ZD2k~*';
 
           const qMsg = await conn.sendMessage(
             from,
@@ -162,7 +159,7 @@ cmd(
           return;
         }
 
-        // Second step: user quality එක තෝරනවා
+        
         if (waiting.has(replyTo)) {
           const { film, picks } = waiting.get(replyTo);
           const pick = picks.find((p) => p.n === parseInt(body));
@@ -171,7 +168,7 @@ cmd(
             return;
           }
 
-          // file size check කරනවා (2GBට වැඩි නම් direct link share කරනවා)
+          
           const sz = pick.size.toLowerCase();
           const gb = sz.includes('gb') ? parseFloat(sz) : parseFloat(sz) / 1024;
           if (gb > 2) {
@@ -183,9 +180,9 @@ cmd(
             return;
           }
 
-          // safe filename එක generate කරනවා
+          
           const safe = film.title.replace(/[\\/:*?"<>|]/g, '');
-          const fname = `${BRAND} • ${safe} • ${pick.q}.mp4`;
+          const fname = `KAVI ツ • ${safe} • ${pick.q}.mp4`;
 
           try {
             await conn.sendMessage(
@@ -194,7 +191,7 @@ cmd(
                 document: { url: pick.direct_download },
                 mimetype: 'video/mp4',
                 fileName: fname,
-                caption: `🎬 *${film.title}*\n📊 Size: ${pick.size}\n\n🔥 ${BRAND}`,
+                caption: `🎬 *${film.title}*\n📊 Size: ${pick.size}\n\n${config.MOVIE_FOOTER}`,
               },
               { quoted: msg }
             );
