@@ -34,5 +34,6 @@ INBOX_BLOCK: process.env.INBOX_BLOCK || "false",
 AUTO_STATUS_REACT: process.env.AUTO_STATUS_REACT || "true",
 AUTO_STATUS_REPLY: process.env.AUTO_STATUS_REPLY || "true",
 OWNER_NAME: process.env.OWNER_NAME || "Kavidu Rasanga", // නම
-FOOTER: process.env.FOOTER || "> *ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴋᴀᴠɪᴅᴜ ʀᴀꜱᴀɴɢᴀ  👨‍💻*",
+FOOTER: process.env.FOOTER || "> *ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴋᴀᴠɪᴅᴜ ʀᴀꜱᴀɴɢᴀ  👨‍💻*", //Bot footer
+MOVIE_FOOTER: process.env.MOVIE_FOOTER || "*YOUR MOVIE NAME 🥚*", //Movie footer  
 };
