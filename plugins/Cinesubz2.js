@@ -1,122 +1,96 @@
-// pastpp.js — Sri Lanka Past Paper Search & Download (reply-based)
+// commands/movis.js – GOJO-MD watermark + space-fix  (no size-limit)
 
-const { cmd } = require('../command');
-const axios = require('axios');
+const { cmd }   = require('../command');
+const { fetchJson } = require('../lib/functions');
 
-let pastppConn = null;
-const replyCache = {}; // { searchMsgId: [resultList] }
+const API = 'https://api-vishwa.vercel.app';
+const WM  = '🔰 *GOJO-MD* 🔰';          // watermark text
 
 cmd({
-    pattern: "pas",
-    alias: ["pastpaper", "pastpapers"],
-    desc: "Search and download Sri Lanka school past papers!",
-    react: "📄",
-    category: "education",
-    filename: __filename
-}, async (conn, mek, m, { from, args, reply }) => {
-    pastppConn = conn;
-    const query = args.join(" ").trim();
+  pattern : /^(mv|movis)$/i,           // .mv  හෝ .movis
+  alias   : ['smovie','sinhaladub','mv'],
+  react   : '📑',
+  category: 'movie',
+  desc    : 'Search SinhalaDub movies and download',
+  filename: __filename
+}, async (conn, m, mek, { from, isOwner, q, reply }) => {
 
-    if (!query) {
-        await conn.sendMessage(from, { react: { text: "❌", key: mek.key } });
-        return reply('🔎 Type a past paper name, grade, or subject to search.\n\n📌 Example: `.pastpp grade 11 science`');
-    }
+  if (!q)       return reply('*.mv <title>* ලෙස දාන්න.');
+  if (!isOwner) return reply('Owner only.');
 
-    await conn.sendMessage(from, { react: { text: "🔍", key: mek.key } });
+  /* ─── 1. search  ─────────────────────────────────────── */
+  let { data:list=[] } =
+      await fetchJson(`${API}/sinhaladub?q=${encodeURIComponent(q)}`);
 
-    try {
-        const apiUrl = `https://api-pass.vercel.app/api/search?query=${encodeURIComponent(query)}&page=1`;
-        const { data } = await axios.get(apiUrl);
+  // 2nd-try: remove spaces → “dead pool” ⇒ “deadpool”
+  if (!list.length && q.includes(' ')) {
+    const alt = q.replace(/\s+/g,'');
+    ({ data:list=[] } =
+      await fetchJson(`${API}/sinhaladub?q=${encodeURIComponent(alt)}`));
+  }
 
-        if (!Array.isArray(data.results) || data.results.length === 0) {
-            await conn.sendMessage(from, { react: { text: "❌", key: mek.key } });
-            return reply("❌ No past papers found. Try a different keyword.");
-        }
+  if (!list.length) return reply('No results.');
 
-        const results = data.results.slice(0, 25); // limit to 25 results
-        let text = `*📄 Past Paper Results for:* \`${query}\`\n━━━━━━━━━━━━━━━━━━\n`;
-        results.forEach((r, i) => {
-            const title = r.title.length > 60 ? r.title.slice(0, 57) + "..." : r.title;
-            text += `${i + 1}. ${title}\n`;
-        });
-        text += "━━━━━━━━━━━━━━━━━━\n🔁 _Reply with a number to download that paper._";
+  const movies = list.slice(0,10);
+  const searchMsg = await conn.sendMessage(from,{
+    image:{url:movies[0].image},
+    caption:`📽️ *${q}*\n\n`+
+            movies.map((v,i)=>`*${i+1}.* ${v.title}`).join('\n')+
+            `\n\n🔢 1-${movies.length}\n\n${WM}`
+  },{quoted:mek});
 
-        const msg = await conn.sendMessage(from, {
-            image: { url: results[0].thumbnail || 'https://raw.githubusercontent.com/gojo18888/Photo-video-/refs/heads/main/file_000000003a2861fd8da00091a32a065a.png' },
-            caption: text,
-            footer: "© GOJO MD | Past Paper Search",
-            headerType: 4,
-            contextInfo: {
-                forwardingScore: 999,
-                isForwarded: true,
-                externalAdReply: {
-                    title: "GOJO MD | Auto AI",
-                    body: "Powered by sayura | darkhackersl",
-                    mediaType: 1,
-                    thumbnailUrl: "https://raw.githubusercontent.com/gojo18888/Photo-video-/refs/heads/main/file_000000003a2861fd8da00091a32a065a.png",
-                    sourceUrl: "https://github.com/darkhackersl",
-                    renderLargerThumbnail: true
-                }
-            }
-        }, { quoted: mek });
+  /* ─── 2. pick movie ───────────────────────────────────── */
+  const pick = await waitNumber(conn,from,searchMsg.key.id,movies.length);
+  const sel  = movies[pick-1];
 
-        if (msg?.key?.id) {
-            replyCache[msg.key.id] = results;
-        }
+  /* ─── 3. details / link list ─────────────────────────── */
+  const { data:info={} } =
+      await fetchJson(`${API}/sinhaladub-info?url=${encodeURIComponent(sel.link)}`);
+  const links = info.links || [];
+  if (!links.length) return reply('Links empty.');
 
-        await conn.sendMessage(from, { react: { text: "✅", key: msg.key } });
-    } catch (err) {
-        console.error(err);
-        await conn.sendMessage(from, { react: { text: "❌", key: mek.key } });
-        reply("⚠️ Error while searching past papers.");
-    }
+  const qualMsg = await conn.sendMessage(from,{
+    image:{url:sel.image},
+    caption:`🎥 *${info.title}*\n\n`+
+            links.map((l,i)=>
+              `*${i+1}.* ${l.quality} (${l.fileSize})`).join('\n')+
+            `\n\n🔢 pick\n\n${WM}`
+  },{quoted:searchMsg});
+
+  /* ─── 4. pick quality & send ─────────────────────────── */
+  const qPick = await waitNumber(conn,from,qualMsg.key.id,links.length);
+  const link  = links[qPick-1];
+
+  await conn.sendMessage(from,{react:{text:'⬇️',key:qualMsg.key}});
+
+  await conn.sendMessage(from,{
+    document : { url: link.link },
+    fileName : `${info.title}-${link.quality}-GOJO-MD.mp4`,
+    mimetype : 'video/mp4',
+    caption  : `🎬 *${info.title} – ${link.quality}*\n\n${WM}`
+  },{quoted:qualMsg});
+
+  await conn.sendMessage(from,{react:{text:'✅',key:qualMsg.key}});
 });
 
-// Listen for reply to download
-if (!global.__pastppReplyListener) {
-    global.__pastppReplyListener = true;
+/* helper – wait for numeric reply to the given stanza */
+function waitNumber(conn,jid,quotedID,max){
+  return new Promise(res=>{
+    const h = ({ messages })=>{
+      const m = messages[0];
+      if (!m || m.key.remoteJid !== jid) return;
 
-    const { setTimeout } = require('timers');
-    function waitForConn() {
-        if (!pastppConn) return setTimeout(waitForConn, 500);
-        pastppConn.ev.on("messages.upsert", async ({ messages }) => {
-            const msg = messages[0];
-            if (!msg?.message) return;
+      const txt = m.message?.conversation ||
+                  m.message?.extendedTextMessage?.text || '';
+      const isReply =
+        m.message?.extendedTextMessage?.contextInfo?.stanzaId === quotedID;
+      const n = parseInt(txt.trim());
 
-            const text = msg.message.conversation || msg.message.extendedTextMessage?.text;
-            const quotedId = msg.message?.extendedTextMessage?.contextInfo?.stanzaId;
-            if (!quotedId || !(quotedId in replyCache)) return;
-
-            const index = parseInt(text.trim(), 10);
-            if (isNaN(index) || index < 1 || index > replyCache[quotedId].length) {
-                await pastppConn.sendMessage(msg.key.remoteJid, { react: { text: "❌", key: msg.key } });
-                return;
-            }
-
-            const paper = replyCache[quotedId][index - 1];
-            try {
-                await pastppConn.sendMessage(msg.key.remoteJid, { react: { text: "⏬", key: msg.key } });
-
-                const { data: dl } = await axios.get(`https://api-pass.vercel.app/api/download?url=${encodeURIComponent(paper.url)}`);
-                if (!dl?.download_info?.download_url) {
-                    return pastppConn.sendMessage(msg.key.remoteJid, { text: "❌ Download link not found!" }, { quoted: msg });
-                }
-
-                await pastppConn.sendMessage(msg.key.remoteJid, {
-                    document: { url: dl.download_info.download_url },
-                    mimetype: "application/pdf",
-                    fileName: dl.download_info.file_name || "pastpaper.pdf",
-                    caption: `*📄 ${dl.download_info.file_title || paper.title}*\n\n📥 Source: ${paper.url}\n_Powered by GOJO MD_`
-                }, { quoted: msg });
-
-                await pastppConn.sendMessage(msg.key.remoteJid, { react: { text: "✅", key: msg.key } });
-            } catch (e) {
-                console.error(e);
-                await pastppConn.sendMessage(msg.key.remoteJid, { react: { text: "❌", key: msg.key } });
-                pastppConn.sendMessage(msg.key.remoteJid, { text: "❌ Failed to fetch the download link!" }, { quoted: msg });
-            }
-        });
-    }
-
-    waitForConn();
+      if (isReply && n>0 && n<=max){
+        conn.ev.off('messages.upsert',h);
+        res(n);
+      }
+    };
+    conn.ev.on('messages.upsert',h);
+  });
 }
