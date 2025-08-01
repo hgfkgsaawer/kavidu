@@ -8,7 +8,7 @@ if (fs.existsSync(configPath)) {
     global.CONFIG = JSON.parse(fs.readFileSync(configPath));
 } else {
     global.CONFIG = {
-        SESSION_ID: "Your session",
+        SESSION_ID: "3FVR1SjD#7VWZIpe-0r_Sgm4_wJT_OqRDq008TLQbQQcNie3eLWM",
         AUTO_READ_STATUS: "true",
         MODE: "public",
         AUTO_VOICE: "false",
