@@ -1,96 +1,84 @@
-// commands/movis.js – GOJO-MD watermark + space-fix  (no size-limit)
 
-const { cmd }   = require('../command');
-const { fetchJson } = require('../lib/functions');
+const { fetchJson } = require('../lib/functions')
+const config = require('../config')
+const { cmd, commands } = require('../command')
 
-const API = 'https://api-vishwa.vercel.app';
-const WM  = '🔰 *GOJO-MD* 🔰';          // watermark text
+// FETCH API URL
+let baseUrl;
+(async () => {
+    let baseUrlGet = await fetchJson(`https://raw.githubusercontent.com/prabathLK/PUBLIC-URL-HOST-DB/main/public/url.json`)
+    baseUrl = baseUrlGet.api
+})();
 
+
+const yourName = "> MD";
+
+//twitter dl (x)
 cmd({
-  pattern : /^(mv|movis)$/i,           // .mv  හෝ .movis
-  alias   : ['smovie','sinhaladub','mv'],
-  react   : '📑',
-  category: 'movie',
-  desc    : 'Search SinhalaDub movies and download',
-  filename: __filename
-}, async (conn, m, mek, { from, isOwner, q, reply }) => {
+    pattern: "twitter",
+    alias: ["twdl"],
+    desc: "download tw videos",
+    category: "download",
+    react: "🔎",
+    filename: __filename
+},
+async(conn, mek, m, { from, quoted, body, isCmd, command, args, q, isGroup, sender, senderNumber, botNumber2, botNumber, pushname, isMe, isOwner, groupMetadata, groupName, participants, groupAdmins, isBotAdmins, isAdmins, reply }) => {
+    try {
+        if (!q && !q.startsWith("https://")) return reply("give me twitter url")
+        //fetch data from api  
+        let data = await fetchJson(`${baseUrl}/api/twitterdl?url=${q}`)
+        reply("*Downloading...*")
+        //send video (hd,sd)
+        await conn.sendMessage(from, { video: { url: data.data.data.HD }, mimetype: "video/mp4", caption: `- HD\n\n ${yourName}` }, { quoted: mek })
+        await conn.sendMessage(from, { video: { url: data.data.data.SD }, mimetype: "video/mp4", caption: `- SD \n\n ${yourName}` }, { quoted: mek })  
+        //send audio    
+        await conn.sendMessage(from, { audio: { url: data.data.data.audio }, mimetype: "audio/mpeg" }, { quoted: mek })  
+    } catch (e) {
+        console.log(e)
+        reply(`${e}`)
+    }
+})
 
-  if (!q)       return reply('*.mv <title>* ලෙස දාන්න.');
-  if (!isOwner) return reply('Owner only.');
+//gdrive(google drive) dl
+cmd({
+    pattern: "gdr",
+    alias: ["googledrive"],
+    desc: "download gdrive files",
+    category: "download",
+    react: "🔎",
+    filename: __filename
+},
+async(conn, mek, m, { from, quoted, body, isCmd, command, args, q, isGroup, sender, senderNumber, botNumber2, botNumber, pushname, isMe, isOwner, groupMetadata, groupName, participants, groupAdmins, isBotAdmins, isAdmins, reply }) => {
+    try {
+        if (!q && !q.startsWith("https://")) return reply("give me gdrive url")
+        //fetch data from api  
+        let data = await fetchJson(`${baseUrl}/api/gdrivedl?url=${q}`)
+        reply("*Downloading...*")
+        await conn.sendMessage(from, { document: { url: data.data.download }, fileName: data.data.fileName, mimetype: data.data.mimeType, caption: `${data.data.fileName}\n\n${yourName}` }, { quoted: mek })                                                                                                                 
+    } catch (e) {
+        console.log(e)
+        reply(`${e}`)
+    }
+})
 
-  /* ─── 1. search  ─────────────────────────────────────── */
-  let { data:list=[] } =
-      await fetchJson(`${API}/sinhaladub?q=${encodeURIComponent(q)}`);
-
-  // 2nd-try: remove spaces → “dead pool” ⇒ “deadpool”
-  if (!list.length && q.includes(' ')) {
-    const alt = q.replace(/\s+/g,'');
-    ({ data:list=[] } =
-      await fetchJson(`${API}/sinhaladub?q=${encodeURIComponent(alt)}`));
-  }
-
-  if (!list.length) return reply('No results.');
-
-  const movies = list.slice(0,10);
-  const searchMsg = await conn.sendMessage(from,{
-    image:{url:movies[0].image},
-    caption:`📽️ *${q}*\n\n`+
-            movies.map((v,i)=>`*${i+1}.* ${v.title}`).join('\n')+
-            `\n\n🔢 1-${movies.length}\n\n${WM}`
-  },{quoted:mek});
-
-  /* ─── 2. pick movie ───────────────────────────────────── */
-  const pick = await waitNumber(conn,from,searchMsg.key.id,movies.length);
-  const sel  = movies[pick-1];
-
-  /* ─── 3. details / link list ─────────────────────────── */
-  const { data:info={} } =
-      await fetchJson(`${API}/sinhaladub-info?url=${encodeURIComponent(sel.link)}`);
-  const links = info.links || [];
-  if (!links.length) return reply('Links empty.');
-
-  const qualMsg = await conn.sendMessage(from,{
-    image:{url:sel.image},
-    caption:`🎥 *${info.title}*\n\n`+
-            links.map((l,i)=>
-              `*${i+1}.* ${l.quality} (${l.fileSize})`).join('\n')+
-            `\n\n🔢 pick\n\n${WM}`
-  },{quoted:searchMsg});
-
-  /* ─── 4. pick quality & send ─────────────────────────── */
-  const qPick = await waitNumber(conn,from,qualMsg.key.id,links.length);
-  const link  = links[qPick-1];
-
-  await conn.sendMessage(from,{react:{text:'⬇️',key:qualMsg.key}});
-
-  await conn.sendMessage(from,{
-    document : { url: link.link },
-    fileName : `${info.title}-${link.quality}-GOJO-MD.mp4`,
-    mimetype : 'video/mp4',
-    caption  : `🎬 *${info.title} – ${link.quality}*\n\n${WM}`
-  },{quoted:qualMsg});
-
-  await conn.sendMessage(from,{react:{text:'✅',key:qualMsg.key}});
-});
-
-/* helper – wait for numeric reply to the given stanza */
-function waitNumber(conn,jid,quotedID,max){
-  return new Promise(res=>{
-    const h = ({ messages })=>{
-      const m = messages[0];
-      if (!m || m.key.remoteJid !== jid) return;
-
-      const txt = m.message?.conversation ||
-                  m.message?.extendedTextMessage?.text || '';
-      const isReply =
-        m.message?.extendedTextMessage?.contextInfo?.stanzaId === quotedID;
-      const n = parseInt(txt.trim());
-
-      if (isReply && n>0 && n<=max){
-        conn.ev.off('messages.upsert',h);
-        res(n);
-      }
-    };
-    conn.ev.on('messages.upsert',h);
-  });
-}
+//mediafire dl
+cmd({
+    pattern: "mediafire",
+    alias: ["mfire"],
+    desc: "download mfire files",
+    category: "download",
+    react: "🔎",
+    filename: __filename
+},
+async(conn, mek, m, { from, quoted, body, isCmd, command, args, q, isGroup, sender, senderNumber, botNumber2, botNumber, pushname, isMe, isOwner, groupMetadata, groupName, participants, groupAdmins, isBotAdmins, isAdmins, reply }) => {
+    try {
+        if (!q && !q.startsWith("https://")) return reply("give me mediafire url")
+        //fetch data from api  
+        let data = await fetchJson(`${baseUrl}/api/mediafiredl?url=${q}`)
+        reply("*Downloading...*")
+        await conn.sendMessage(from, { document: { url: data.data.link_1 }, fileName: data.data.name, mimetype: data.data.file_type, caption: `${data.data.name}\n\n${yourName}` }, { quoted: mek })                                                                                                                 
+    } catch (e) {
+        console.log(e)
+        reply(`${e}`)
+    }
+})
